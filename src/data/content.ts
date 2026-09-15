@@ -1,0 +1,339 @@
+export type Lang = 'en' | 'id';
+
+export type Localized = { en: string; id: string };
+
+export interface Project {
+  slug: string;
+  name: string;
+  year: string;
+  stack: string[];
+  repo?: string;
+  live?: string;
+  role: Localized;
+  summary: Localized;
+  metric: Localized;
+}
+
+export interface DesignPiece {
+  slug: string;
+  title: string;
+  discipline: Localized;
+  tools: string[];
+  note: Localized;
+  palette: string[];
+}
+
+export interface VideoPiece {
+  slug: string;
+  title: string;
+  kind: Localized;
+  duration: string;
+  tools: string[];
+  note: Localized;
+  cuts: number;
+}
+
+export const PROFILE = {
+  name: 'Ahimsa Jenar Bramsaifstyo Kusuma',
+  handle: 'Tiyouw',
+  email: 'tio.rmx@gmail.com',
+  github: 'https://github.com/Tiyouw',
+  location: { en: 'Jember, East Java, Indonesia', id: 'Jember, Jawa Timur, Indonesia' },
+  role: {
+    en: 'Backend engineer who ships design and motion too',
+    id: 'Backend engineer yang juga menggarap desain dan motion',
+  },
+  intro: {
+    en: 'I build server-side systems for civic and education products, then take the same work through interface design, colour, and edit-room pacing until it feels finished.',
+    id: 'Saya membangun sistem sisi server untuk produk publik dan pendidikan, lalu membawanya lewat desain antarmuka, warna, dan ritme ruang edit sampai terasa tuntas.',
+  },
+  statement: {
+    en: 'Three disciplines, one habit: reduce until only the load-bearing parts remain.',
+    id: 'Tiga disiplin, satu kebiasaan: kurangi sampai tinggal bagian yang menopang.',
+  },
+} as const;
+
+export const PROJECTS: Project[] = [
+  {
+    slug: 'petabudaya-probolinggo',
+    name: 'petabudaya-probolinggo',
+    year: '2026',
+    stack: ['TypeScript', 'Next.js', 'Leaflet', 'PostgreSQL'],
+    repo: 'https://github.com/Tiyouw/petabudaya-probolinggo',
+    role: { en: 'Full-stack, data pipeline', id: 'Full-stack, pipeline data' },
+    summary: {
+      en: 'Interactive map of heritage sites, intangible cultural heritage, and cultural advancement objects across Probolinggo Regency.',
+      id: 'Peta interaktif cagar budaya, WBTB, dan objek pemajuan kebudayaan Kabupaten Probolinggo.',
+    },
+    metric: { en: 'Regency-wide coverage, layered map filters', id: 'Cakupan satu kabupaten, filter peta berlapis' },
+  },
+  {
+    slug: 'selfie-booth',
+    name: 'selfie-booth',
+    year: '2026',
+    stack: ['TypeScript', 'Next.js', 'Canvas API', 'SQLite'],
+    repo: 'https://github.com/Tiyouw/selfie-booth',
+    role: { en: 'Product engineering, frame system', id: 'Rekayasa produk, sistem frame' },
+    summary: {
+      en: 'Web photobooth: capture selfies, compose them into custom frames, export PNG, share by link.',
+      id: 'Photobooth web: ambil selfie, susun ke frame custom, ekspor PNG, bagikan lewat tautan.',
+    },
+    metric: { en: 'Server-side render + expiring share links', id: 'Render sisi server + tautan bagi kedaluwarsa' },
+  },
+  {
+    slug: 'sinadplus-app',
+    name: 'sinadplus-app',
+    year: '2026',
+    stack: ['TypeScript', 'React Native', 'Expo'],
+    repo: 'https://github.com/Tiyouw/sinadplus-app',
+    role: { en: 'Mobile engineering', id: 'Rekayasa mobile' },
+    summary: {
+      en: 'SINAD+ parent companion app for early ADHD observation, built around short structured checklists.',
+      id: 'Aplikasi pendamping orang tua SINAD+ untuk observasi dini ADHD, berbasis checklist terstruktur singkat.',
+    },
+    metric: { en: 'Observation flow designed with practitioners', id: 'Alur observasi dirancang bersama praktisi' },
+  },
+  {
+    slug: 'inventaris-paud',
+    name: 'inventaris-paud',
+    year: '2026',
+    stack: ['TypeScript', 'Next.js', 'Prisma'],
+    repo: 'https://github.com/Tiyouw/inventaris-paud',
+    role: { en: 'Backend, data model', id: 'Backend, model data' },
+    summary: {
+      en: 'Asset and inventory tracking for early-childhood schools, replacing spreadsheet handoffs.',
+      id: 'Pencatatan aset dan inventaris sekolah PAUD, mengganti serah-terima lewat spreadsheet.',
+    },
+    metric: { en: 'Audit trail per item movement', id: 'Jejak audit per perpindahan barang' },
+  },
+  {
+    slug: 'google-form-dummy-submitter',
+    name: 'google-form-dummy-submitter',
+    year: '2026',
+    stack: ['JavaScript', 'Node.js', 'CSV'],
+    repo: 'https://github.com/Tiyouw/google-form-dummy-submitter',
+    role: { en: 'Tooling author', id: 'Penulis tooling' },
+    summary: {
+      en: 'Submits dummy CSV responses to Google Forms you own, so QA can test flows without manual clicking.',
+      id: 'Mengirim respons CSV dummy ke Google Form milik sendiri, agar QA bisa uji alur tanpa klik manual.',
+    },
+    metric: { en: 'Open source, used for QA runs', id: 'Open source, dipakai untuk uji QA' },
+  },
+  {
+    slug: 'edu',
+    name: 'edu / SantriHub',
+    year: '2026',
+    stack: ['Laravel', 'Blade', 'MySQL', 'REST'],
+    repo: 'https://github.com/Tiyouw/edu',
+    role: { en: 'Backend engineer', id: 'Backend engineer' },
+    summary: {
+      en: 'Education platform backend with REST endpoints consumed by a companion mobile client.',
+      id: 'Backend platform pendidikan dengan endpoint REST yang dikonsumsi klien mobile pendamping.',
+    },
+    metric: { en: 'API-first, mobile client parity', id: 'API-first, paritas dengan klien mobile' },
+  },
+  {
+    slug: 'whatsapp-notifications-mediatek',
+    name: 'whatsappNotifications-mediatek',
+    year: '2026',
+    stack: ['Node.js', 'Baileys', 'Webhook'],
+    repo: 'https://github.com/Tiyouw/whatsappNotifications-mediatek',
+    role: { en: 'Automation engineer', id: 'Automation engineer' },
+    summary: {
+      en: 'WhatsApp notification bridge for organisation workflows: reminders, task states, group mentions.',
+      id: 'Jembatan notifikasi WhatsApp untuk alur kerja organisasi: pengingat, status tugas, mention grup.',
+    },
+    metric: { en: 'Runs unattended as a service', id: 'Berjalan tanpa pengawasan sebagai service' },
+  },
+  {
+    slug: 'bonsarental',
+    name: 'BonsaRental',
+    year: '2025',
+    stack: ['Laravel', 'Blade', 'MySQL'],
+    repo: 'https://github.com/Tiyouw/BonsaRental',
+    role: { en: 'Full-stack', id: 'Full-stack' },
+    summary: {
+      en: 'Rental management web app covering catalogue, booking, and return states.',
+      id: 'Aplikasi web manajemen rental mencakup katalog, pemesanan, dan status pengembalian.',
+    },
+    metric: { en: 'CRUD-complete rental lifecycle', id: 'Siklus rental lengkap end-to-end' },
+  },
+];
+
+export const DESIGNS: DesignPiece[] = [
+  {
+    slug: 'petabudaya-identity',
+    title: 'PetaBudaya map identity',
+    discipline: { en: 'Product UI, cartographic styling', id: 'UI produk, gaya kartografi' },
+    tools: ['Figma', 'CSS', 'Leaflet theming'],
+    note: {
+      en: 'Legend, marker hierarchy, and a muted basemap so heritage layers stay legible at every zoom.',
+      id: 'Legenda, hierarki marker, dan basemap redup agar lapisan cagar budaya tetap terbaca di tiap zoom.',
+    },
+    palette: ['#0b0d10', '#1c2430', '#c9a227', '#e8e6df'],
+  },
+  {
+    slug: 'selfie-booth-frames',
+    title: 'Photobooth frame set',
+    discipline: { en: 'Graphic system, print-safe SVG', id: 'Sistem grafis, SVG siap cetak' },
+    tools: ['SVG', 'Illustrator', 'Python generator'],
+    note: {
+      en: 'Klasik, Neon, and Polaroid frames drawn as SVG across 16:9, 9:16, and 1:3 strip ratios.',
+      id: 'Frame Klasik, Neon, dan Polaroid digambar sebagai SVG untuk rasio 16:9, 9:16, dan strip 1:3.',
+    },
+    palette: ['#111111', '#f5f1e6', '#ff3ea5', '#3ad6ff'],
+  },
+  {
+    slug: 'sinadplus-ui',
+    title: 'SINAD+ observation UI',
+    discipline: { en: 'Mobile UI, accessibility', id: 'UI mobile, aksesibilitas' },
+    tools: ['Figma', 'React Native styling'],
+    note: {
+      en: 'Large tap targets and calm contrast for parents filling checklists on a phone, one hand, low light.',
+      id: 'Target sentuh besar dan kontras tenang untuk orang tua mengisi checklist di ponsel, satu tangan, cahaya redup.',
+    },
+    palette: ['#0e1116', '#17324a', '#4fb0c6', '#f2f5f7'],
+  },
+  {
+    slug: 'fitcha-website',
+    title: 'Fitcha landing',
+    discipline: { en: 'Marketing page, type scale', id: 'Halaman marketing, skala tipografi' },
+    tools: ['CSS', 'Figma'],
+    note: {
+      en: 'Single-column narrative page: one idea per scroll block, type doing the layout work.',
+      id: 'Halaman naratif satu kolom: satu gagasan per blok scroll, tipografi yang menata layout.',
+    },
+    palette: ['#08090a', '#20242b', '#7170ff', '#d0d6e0'],
+  },
+  {
+    slug: 'kauje-digital',
+    title: 'KAUJE Digital concept',
+    discipline: { en: 'Platform design, information architecture', id: 'Desain platform, arsitektur informasi' },
+    tools: ['Figma', 'Whimsical'],
+    note: {
+      en: 'Alumni platform structure: directory, chapters, events. Design driven by the data model, not the reverse.',
+      id: 'Struktur platform alumni: direktori, komisariat, acara. Desain mengikuti model data, bukan sebaliknya.',
+    },
+    palette: ['#0a0a0c', '#1b2a4a', '#c8ab4a', '#eef0f4'],
+  },
+  {
+    slug: 'reo-bot-brand',
+    title: "Reo's v2 bot persona",
+    discipline: { en: 'Conversational design, microcopy', id: 'Desain percakapan, microcopy' },
+    tools: ['Copy system', 'Command grammar'],
+    note: {
+      en: 'Command grammar and reply tone for an assistant bot: short, unambiguous, never chatty.',
+      id: 'Tata bahasa perintah dan nada balasan bot asisten: singkat, tidak ambigu, tidak bertele-tele.',
+    },
+    palette: ['#0c0f0e', '#123b32', '#2fd6a4', '#e6efec'],
+  },
+];
+
+export const VIDEOS: VideoPiece[] = [
+  {
+    slug: 'campus-event-recap',
+    title: 'Campus event recap',
+    kind: { en: 'Event recap', id: 'Rekap acara' },
+    duration: '01:40',
+    tools: ['Premiere Pro', 'After Effects'],
+    cuts: 84,
+    note: {
+      en: 'Cut on crowd energy: wide establish, three beats per act, music-locked transitions.',
+      id: 'Potong mengikuti energi massa: wide pembuka, tiga beat per babak, transisi terkunci musik.',
+    },
+  },
+  {
+    slug: 'product-demo',
+    title: 'Product demo walkthrough',
+    kind: { en: 'Screen-capture edit', id: 'Edit rekaman layar' },
+    duration: '02:15',
+    tools: ['Premiere Pro', 'Figma callouts'],
+    cuts: 46,
+    note: {
+      en: 'Zoom-and-hold on the exact UI element being explained, captions carrying the narration weight.',
+      id: 'Zoom-dan-tahan tepat pada elemen UI yang dijelaskan, caption memikul beban narasi.',
+    },
+  },
+  {
+    slug: 'short-form-vertical',
+    title: 'Vertical short cutdown',
+    kind: { en: 'Short-form 9:16', id: 'Short-form 9:16' },
+    duration: '00:38',
+    tools: ['CapCut', 'Premiere Pro'],
+    cuts: 27,
+    note: {
+      en: 'Hook in the first 1.5 seconds, one message, no dead frame before the payoff.',
+      id: 'Hook di 1,5 detik pertama, satu pesan, tanpa frame kosong sebelum penutup.',
+    },
+  },
+  {
+    slug: 'motion-titles',
+    title: 'Motion title pack',
+    kind: { en: 'Motion graphics', id: 'Motion graphics' },
+    duration: '00:22',
+    tools: ['After Effects', 'Expressions'],
+    cuts: 12,
+    note: {
+      en: 'Reusable lower-thirds and title cards driven by expressions instead of hand-keyed frames.',
+      id: 'Lower-third dan title card reusable digerakkan expression, bukan keyframe manual.',
+    },
+  },
+];
+
+export const SKILLS: { group: Localized; items: string[] }[] = [
+  {
+    group: { en: 'Backend & data', id: 'Backend & data' },
+    items: ['Laravel / PHP', 'Node.js', 'TypeScript', 'PostgreSQL', 'MySQL', 'SQLite', 'REST API design', 'Python'],
+  },
+  {
+    group: { en: 'Frontend & 3D', id: 'Frontend & 3D' },
+    items: ['React', 'Next.js', 'Vite', 'three.js', 'react-three-fiber', 'GSAP ScrollTrigger', 'CSS architecture'],
+  },
+  {
+    group: { en: 'Design', id: 'Desain' },
+    items: ['Figma', 'Design systems', 'SVG illustration', 'Type & colour systems', 'Cartographic styling'],
+  },
+  {
+    group: { en: 'Video & motion', id: 'Video & motion' },
+    items: ['Premiere Pro', 'After Effects', 'CapCut', 'Colour grading', 'Sound design basics', 'Short-form pacing'],
+  },
+  {
+    group: { en: 'Ops', id: 'Ops' },
+    items: ['Docker', 'Coolify', 'Linux VPS', 'GitHub Actions', 'Vercel', 'Cron & queue jobs'],
+  },
+];
+
+export const TIMELINE: { year: string; title: Localized; body: Localized }[] = [
+  {
+    year: '2024',
+    title: { en: 'Fundamentals, in public', id: 'Fondasi, di ruang publik' },
+    body: {
+      en: 'C# coursework and algorithm practice pushed to GitHub every week. Learning by leaving a trail.',
+      id: 'Tugas C# dan latihan algoritma dipush ke GitHub tiap pekan. Belajar dengan meninggalkan jejak.',
+    },
+  },
+  {
+    year: '2025',
+    title: { en: 'First full products', id: 'Produk utuh pertama' },
+    body: {
+      en: 'Laravel rental app, static sites, and sticker tools — the year the whole stack became mine.',
+      id: 'Aplikasi rental Laravel, situs statis, dan tool stiker — tahun ketika seluruh stack jadi milik sendiri.',
+    },
+  },
+  {
+    year: '2026',
+    title: { en: 'Civic and education systems', id: 'Sistem publik dan pendidikan' },
+    body: {
+      en: 'Heritage mapping, PAUD inventory, ADHD observation, WhatsApp automation, photobooth. Design and video ride along.',
+      id: 'Pemetaan cagar budaya, inventaris PAUD, observasi ADHD, otomasi WhatsApp, photobooth. Desain dan video ikut serta.',
+    },
+  },
+  {
+    year: 'now',
+    title: { en: 'KAUJE Digital', id: 'KAUJE Digital' },
+    body: {
+      en: 'Building an alumni platform as thesis work: directory, chapter management, and event flows.',
+      id: 'Membangun platform alumni sebagai skripsi: direktori, manajemen komisariat, dan alur acara.',
+    },
+  },
+];
