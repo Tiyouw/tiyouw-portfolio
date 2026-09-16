@@ -42,6 +42,12 @@ export default function WorkSection() {
                 <span aria-hidden="true">→</span>
               </a>
             ) : null}
+            {p.live ? (
+              <a className="card__link" href={p.live} target="_blank" rel="noreferrer">
+                {t('label.visit')}
+                <span aria-hidden="true">↗</span>
+              </a>
+            ) : null}
           </li>
         ))}
       </ul>

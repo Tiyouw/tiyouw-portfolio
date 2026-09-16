@@ -51,6 +51,7 @@ const DICT = {
   'label.cuts': { en: 'Cuts', id: 'Potongan' },
   'label.repo': { en: 'Repository', id: 'Repositori' },
   'label.viewrepo': { en: 'View source', id: 'Lihat kode' },
+  'label.visit': { en: 'Visit live', id: 'Kunjungi situs' },
   'label.projects': { en: 'Repositories', id: 'Repositori' },
   'label.years': { en: 'Years shipping', id: 'Tahun berkarya' },
   'label.disciplines': { en: 'Disciplines', id: 'Disiplin' },

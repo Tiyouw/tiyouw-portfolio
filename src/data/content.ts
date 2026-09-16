@@ -21,6 +21,7 @@ export interface DesignPiece {
   tools: string[];
   note: Localized;
   palette: string[];
+  live?: string;
 }
 
 export interface VideoPiece {
@@ -51,7 +52,7 @@ export const PROFILE = {
     en: 'Three disciplines, one habit: reduce until only the load-bearing parts remain.',
     id: 'Tiga disiplin, satu kebiasaan: kurangi sampai tinggal bagian yang menopang.',
   },
-} as const;
+};
 
 export const PROJECTS: Project[] = [
   {
@@ -337,3 +338,21 @@ export const TIMELINE: { year: string; title: Localized; body: Localized }[] = [
     },
   },
 ];
+
+export interface ContentBundle {
+  profile: typeof PROFILE;
+  projects: Project[];
+  designs: DesignPiece[];
+  videos: VideoPiece[];
+  skills: { group: Localized; items: string[] }[];
+  timeline: { year: string; title: Localized; body: Localized }[];
+}
+
+export function applyContent(data: ContentBundle): void {
+  Object.assign(PROFILE, data.profile);
+  if (data.projects) PROJECTS.splice(0, PROJECTS.length, ...data.projects);
+  if (data.designs) DESIGNS.splice(0, DESIGNS.length, ...data.designs);
+  if (data.videos) VIDEOS.splice(0, VIDEOS.length, ...data.videos);
+  if (data.skills) SKILLS.splice(0, SKILLS.length, ...data.skills);
+  if (data.timeline) TIMELINE.splice(0, TIMELINE.length, ...data.timeline);
+}

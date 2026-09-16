@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex" />
+<title>Portfolio CMS</title>
+<style>
+  :root {
+    --bg: #08090a; --panel: #0e1013; --border: rgba(255,255,255,.09);
+    --text: #e6e8ec; --muted: #8a919e; --accent: #7170ff; --ok: #2fd6a4; --err: #ff5d5d;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.5 ui-sans-serif, system-ui, sans-serif; }
+  a { color: var(--accent); }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 24px 16px 80px; }
+  header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+  h1 { font-size: 18px; margin: 0; letter-spacing: -.01em; }
+  .muted { color: var(--muted); }
+  button, input, textarea, select {
+    font: inherit; color: var(--text); background: var(--panel);
+    border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px;
+  }
+  button { cursor: pointer; }
+  button.primary { background: var(--accent); border-color: transparent; color: #fff; font-weight: 600; }
+  button.ghost { background: transparent; }
+  button.danger { color: var(--err); border-color: rgba(255,93,93,.35); background: rgba(255,93,93,.06); }
+  input:focus, textarea:focus { outline: 1px solid var(--accent); }
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 14px; }
+  .row { display: flex; gap: 12px; flex-wrap: wrap; }
+  .row > * { flex: 1 1 200px; }
+  label { display: block; font-size: 12px; color: var(--muted); margin: 10px 0 4px; }
+  input[type=text], input[type=url], input[type=password], textarea { width: 100%; }
+  textarea { min-height: 64px; resize: vertical; }
+  .tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 18px; }
+  .tabs button.active { border-color: var(--accent); color: var(--accent); }
+  .item-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .item-head h3 { margin: 0; font-size: 14px; }
+  .status { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); padding: 8px 16px; border-radius: 999px; background: var(--panel); border: 1px solid var(--border); display: none; }
+  .status.ok { display: block; border-color: var(--ok); color: var(--ok); }
+  .status.err { display: block; border-color: var(--err); color: var(--err); }
+  .login { max-width: 360px; margin: 15vh auto 0; }
+  .chips-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+  .chips-row .chip { background: rgba(255,255,255,.05); border: 1px solid var(--border); border-radius: 999px; padding: 2px 10px; font-size: 12px; }
+  .savebar { position: sticky; bottom: 0; background: linear-gradient(transparent, var(--bg) 30%); padding: 20px 0 8px; display: flex; justify-content: flex-end; gap: 8px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div id="login-view" class="login card" style="display:none">
+    <h1>Portfolio CMS</h1>
+    <p class="muted">Sign in to edit site content.</p>
+    <form id="login-form">
+      <label for="pw">Password</label>
+      <input id="pw" type="password" autocomplete="current-password" required />
+      <div style="margin-top:12px"><button class="primary" type="submit">Sign in</button></div>
+      <p id="login-err" style="color:var(--err);display:none"></p>
+    </form>
+  </div>
+
+  <div id="app-view" style="display:none">
+    <header>
+      <h1>Portfolio CMS</h1>
+      <div>
+        <a href="/" target="_blank" rel="noreferrer">View site ↗</a>
+        <button class="ghost" id="logout">Log out</button>
+      </div>
+    </header>
+    <div class="tabs" id="tabs"></div>
+    <div id="editor"></div>
+    <div class="savebar">
+      <span class="muted" id="dirty" style="align-self:center"></span>
+      <button class="primary" id="save">Save changes</button>
+    </div>
+  </div>
+</div>
+<div class="status" id="status"></div>
+
+<script>
+'use strict';
+const $ = (s, el) => (el || document).querySelector(s);
+const statusEl = $('#status');
+let timer;
+function toast(msg, ok) {
+  statusEl.textContent = msg;
+  statusEl.className = 'status ' + (ok ? 'ok' : 'err');
+  clearTimeout(timer);
+  timer = setTimeout(() => (statusEl.className = 'status'), 3000);
+}
+async function api(path, opts) {
+  const res = await fetch(path, { headers: { 'Content-Type': 'application/json' }, ...opts });
+  if (res.status === 401 && path !== '/api/login') { showLogin(); throw new Error('Unauthorized'); }
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || ('HTTP ' + res.status));
+  return data;
+}
+
+let content = null;
+let tab = 'profile';
+let dirty = false;
+const TABS = [
+  ['profile', 'Profile'], ['projects', 'Projects'], ['designs', 'Designs'],
+  ['videos', 'Videos'], ['skills', 'Skills'], ['timeline', 'Timeline'],
+];
+
+function markDirty(v) {
+  dirty = v;
+  $('#dirty').textContent = v ? 'Unsaved changes' : '';
+}
+
+// ---- field builders ----
+function field(labelText, value, oninput, type) {
+  const wrap = document.createElement('div');
+  const label = document.createElement('label');
+  label.textContent = labelText;
+  const input = type === 'textarea' ? document.createElement('textarea') : document.createElement('input');
+  if (type === 'url') input.type = 'url';
+  input.value = value == null ? '' : value;
+  input.addEventListener('input', () => { oninput(input.value); markDirty(true); });
+  wrap.append(label, input);
+  return wrap;
+}
+function localized(labelText, obj, key) {
+  const wrap = document.createElement('div');
+  wrap.className = 'card';
+  wrap.append(field(labelText + ' — EN', obj[key]?.en ?? '', (v) => { obj[key] = obj[key] || {}; obj[key].en = v; }, 'textarea'));
+  wrap.append(field(labelText + ' — ID', obj[key]?.id ?? '', (v) => { obj[key].id = v; }, 'textarea'));
+  return wrap;
+}
+function stringList(labelText, arr) {
+  const wrap = document.createElement('div');
+  const label = document.createElement('label');
+  label.textContent = labelText + ' (comma separated)';
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.value = arr.join(', ');
+  input.addEventListener('input', () => {
+    const items = input.value.split(',').map((s) => s.trim()).filter(Boolean);
+    arr.length = 0;
+    arr.push(...items);
+    markDirty(true);
+  });
+  wrap.append(label, input);
+  return wrap;
+}
+
+// ---- item editors ----
+function itemEditor(kind, item, container, index, list) {
+  const card = document.createElement('div');
+  card.className = 'card';
+  const head = document.createElement('div');
+  head.className = 'item-head';
+  const title = document.createElement('h3');
+  title.textContent = item.name || item.title || item.slug || ('Item ' + (index + 1));
+  const del = document.createElement('button');
+  del.className = 'danger';
+  del.textContent = 'Delete';
+  del.addEventListener('click', () => {
+    if (!confirm('Delete "' + title.textContent + '"?')) return;
+    list.splice(index, 1);
+    render();
+    markDirty(true);
+  });
+  head.append(title, del);
+  card.append(head);
+
+  if (kind === 'projects') {
+    card.append(
+      field('Slug', item.slug, (v) => (item.slug = v)),
+      field('Name', item.name, (v) => (item.name = v)),
+      field('Year', item.year, (v) => (item.year = v)),
+      stringList('Stack', item.stack || (item.stack = [])),
+      field('Repo URL', item.repo || '', (v) => (item.repo = v || undefined), 'url'),
+      field('Live URL (shown as "Visit live" button)', item.live || '', (v) => (item.live = v || undefined), 'url'),
+      field('Role — EN', item.role?.en ?? '', (v) => { item.role = item.role || {}; item.role.en = v; }),
+      field('Role — ID', item.role?.id ?? '', (v) => { item.role.id = v; }),
+      field('Summary — EN', item.summary?.en ?? '', (v) => { item.summary = item.summary || {}; item.summary.en = v; }, 'textarea'),
+      field('Summary — ID', item.summary?.id ?? '', (v) => { item.summary.id = v; }, 'textarea'),
+      field('Metric — EN', item.metric?.en ?? '', (v) => { item.metric = item.metric || {}; item.metric.en = v; }),
+      field('Metric — ID', item.metric?.id ?? '', (v) => { item.metric.id = v; }),
+    );
+  } else if (kind === 'designs') {
+    card.append(
+      field('Slug', item.slug, (v) => (item.slug = v)),
+      field('Title', item.title, (v) => (item.title = v)),
+      stringList('Tools', item.tools || (item.tools = [])),
+      stringList('Palette (hex colors)', item.palette || (item.palette = [])),
+      field('Discipline — EN', item.discipline?.en ?? '', (v) => { item.discipline = item.discipline || {}; item.discipline.en = v; }),
+      field('Discipline — ID', item.discipline?.id ?? '', (v) => { item.discipline.id = v; }),
+      field('Note — EN', item.note?.en ?? '', (v) => { item.note = item.note || {}; item.note.en = v; }, 'textarea'),
+      field('Note — ID', item.note?.id ?? '', (v) => { item.note.id = v; }, 'textarea'),
+      field('Live URL (optional)', item.live || '', (v) => (item.live = v || undefined), 'url'),
+    );
+  } else if (kind === 'videos') {
+    card.append(
+      field('Slug', item.slug, (v) => (item.slug = v)),
+      field('Title', item.title, (v) => (item.title = v)),
+      field('Duration (mm:ss)', item.duration, (v) => (item.duration = v)),
+      field('Cuts (number)', item.cuts, (v) => (item.cuts = Number(v) || 0)),
+      stringList('Tools', item.tools || (item.tools = [])),
+      field('Kind — EN', item.kind?.en ?? '', (v) => { item.kind = item.kind || {}; item.kind.en = v; }),
+      field('Kind — ID', item.kind?.id ?? '', (v) => { item.kind.id = v; }),
+      field('Note — EN', item.note?.en ?? '', (v) => { item.note = item.note || {}; item.note.en = v; }, 'textarea'),
+      field('Note — ID', item.note?.id ?? '', (v) => { item.note.id = v; }, 'textarea'),
+    );
+  } else if (kind === 'skills') {
+    card.append(
+      field('Group — EN', item.group?.en ?? '', (v) => { item.group = item.group || {}; item.group.en = v; }),
+      field('Group — ID', item.group?.id ?? '', (v) => { item.group.id = v; }),
+      stringList('Items', item.items || (item.items = [])),
+    );
+  } else if (kind === 'timeline') {
+    card.append(
+      field('Year', item.year, (v) => (item.year = v)),
+      field('Title — EN', item.title?.en ?? '', (v) => { item.title = item.title || {}; item.title.en = v; }),
+      field('Title — ID', item.title?.id ?? '', (v) => { item.title.id = v; }),
+      field('Body — EN', item.body?.en ?? '', (v) => { item.body = item.body || {}; item.body.en = v; }, 'textarea'),
+      field('Body — ID', item.body?.id ?? '', (v) => { item.body.id = v; }, 'textarea'),
+    );
+  }
+  container.append(card);
+}
+
+function render() {
+  const tabsEl = $('#tabs');
+  tabsEl.innerHTML = '';
+  for (const [key, label] of TABS) {
+    const b = document.createElement('button');
+    b.textContent = label + (key === 'profile' ? '' : ' (' + content[key].length + ')');
+    if (key === tab) b.className = 'active';
+    b.addEventListener('click', () => { tab = key; render(); });
+    tabsEl.append(b);
+  }
+  const ed = $('#editor');
+  ed.innerHTML = '';
+  if (tab === 'profile') {
+    const card = document.createElement('div');
+    card.className = 'card';
+    const pr = content.profile;
+    card.append(
+      field('Name', pr.name, (v) => (pr.name = v)),
+      field('Handle', pr.handle, (v) => (pr.handle = v)),
+      field('Email', pr.email, (v) => (pr.email = v)),
+      field('GitHub URL', pr.github, (v) => (pr.github = v), 'url'),
+      field('Location — EN', pr.location?.en ?? '', (v) => { pr.location = pr.location || {}; pr.location.en = v; }),
+      field('Location — ID', pr.location?.id ?? '', (v) => { pr.location.id = v; }),
+      field('Role — EN', pr.role?.en ?? '', (v) => { pr.role = pr.role || {}; pr.role.en = v; }, 'textarea'),
+      field('Role — ID', pr.role?.id ?? '', (v) => { pr.role.id = v; }, 'textarea'),
+      field('Intro — EN', pr.intro?.en ?? '', (v) => { pr.intro = pr.intro || {}; pr.intro.en = v; }, 'textarea'),
+      field('Intro — ID', pr.intro?.id ?? '', (v) => { pr.intro.id = v; }, 'textarea'),
+      field('Statement — EN', pr.statement?.en ?? '', (v) => { pr.statement = pr.statement || {}; pr.statement.en = v; }, 'textarea'),
+      field('Statement — ID', pr.statement?.id ?? '', (v) => { pr.statement.id = v; }, 'textarea'),
+    );
+    ed.append(card);
+    return;
+  }
+  const list = content[tab];
+  list.forEach((item, i) => itemEditor(tab, item, ed, i, list));
+  const add = document.createElement('button');
+  add.className = 'primary';
+  add.textContent = '+ Add ' + tab.slice(0, -1);
+  add.addEventListener('click', () => {
+    const blank = tab === 'projects' ? { slug: 'new-project', name: 'New project', year: String(new Date().getFullYear()), stack: [], role: { en: '', id: '' }, summary: { en: '', id: '' }, metric: { en: '', id: '' } }
+      : tab === 'designs' ? { slug: 'new-design', title: 'New design', tools: [], palette: ['#08090a'], discipline: { en: '', id: '' }, note: { en: '', id: '' } }
+      : tab === 'videos' ? { slug: 'new-video', title: 'New video', duration: '00:00', cuts: 0, tools: [], kind: { en: '', id: '' }, note: { en: '', id: '' } }
+      : tab === 'skills' ? { group: { en: '', id: '' }, items: [] }
+      : { year: String(new Date().getFullYear()), title: { en: '', id: '' }, body: { en: '', id: '' } };
+    list.push(blank);
+    render();
+    markDirty(true);
+    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+  });
+  ed.append(add);
+}
+
+$('#save').addEventListener('click', async () => {
+  try {
+    await api('/api/content', { method: 'PUT', body: JSON.stringify(content) });
+    markDirty(false);
+    toast('Saved — live site picks it up on reload', true);
+  } catch (e) {
+    toast(e.message, false);
+  }
+});
+$('#logout').addEventListener('click', async () => {
+  await api('/api/logout', { method: 'POST' });
+  showLogin();
+});
+$('#login-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const errEl = $('#login-err');
+  errEl.style.display = 'none';
+  try {
+    await api('/api/login', { method: 'POST', body: JSON.stringify({ password: $('#pw').value }) });
+    $('#pw').value = '';
+    await boot();
+  } catch (err) {
+    errEl.textContent = err.message;
+    errEl.style.display = 'block';
+  }
+});
+
+function showLogin() {
+  $('#app-view').style.display = 'none';
+  $('#login-view').style.display = 'block';
+}
+function showApp() {
+  $('#login-view').style.display = 'none';
+  $('#app-view').style.display = 'block';
+  markDirty(false);
+  render();
+}
+async function boot() {
+  try {
+    const s = await api('/api/session');
+    if (!s.authed) return showLogin();
+    content = await api('/api/content');
+    showApp();
+  } catch (e) {
+    toast(e.message, false);
+  }
+}
+window.addEventListener('beforeunload', (e) => { if (dirty) e.preventDefault(); });
+boot();
+</script>
+</body>
+</html>

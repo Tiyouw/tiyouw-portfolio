@@ -35,6 +35,12 @@ export default function DesignSection() {
                   <span key={c} className="swatch" style={{ background: c }} title={c} />
                 ))}
               </div>
+              {d.live ? (
+                <a className="card__link" href={d.live} target="_blank" rel="noreferrer">
+                  {t('label.visit')}
+                  <span aria-hidden="true">↗</span>
+                </a>
+              ) : null}
             </div>
           </li>
         ))}
